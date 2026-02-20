@@ -4,11 +4,9 @@ services:
   mongodb:
     image: mongo:7
     container_name: mongodb
-    command:
-      - "--replSet=rs0"
-      - "--bind_ip_all"
-      - "--keyFile=/etc/mongo-keyfile"
-      - "--port=27017"
+    entrypoint: [ "/bin/bash", "-c" ]
+    command: >
+      echo "m3J8d9sK2lPq4xZ7vB1tR6yW8fH0gN5cQ2uE4aS9kL3mT7pV1rY6wJ8bD0nF5h" > /etc/mongo-keyfile && chmod 600 /etc/mongo-keyfile && exec mongod --replSet=rs0 --bind_ip_all --keyFile=/etc/mongo-keyfile
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: mongoContainerVPS
@@ -17,9 +15,6 @@ services:
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
-      - ./mongo-keyfile:/etc/mongo-keyfile:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     healthcheck:
       test: [ "CMD-SHELL", "mongosh --quiet --eval 'rs.status().ok' || exit 1" ]
       interval: 10s
