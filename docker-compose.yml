@@ -1,31 +1,25 @@
-version: '3.8'
+version: "3.9"
 
 services:
-  mongodb:
-    image: mongo:7
-    container_name: mongodb
-    entrypoint: [ "/bin/bash", "-c" ]
-    command: >
-      echo "m3J8d9sK2lPq4xZ7vB1tR6yW8fH0gN5cQ2uE4aS9kL3mT7pV1rY6wJ8bD0nF5h" > /etc/mongo-keyfile && chmod 600 /etc/mongo-keyfile && exec mongod --replSet=rs0 --bind_ip_all --keyFile=/etc/mongo-keyfile
+  mongo:
+    image: mongo:latest
+    container_name: mongo-rs0
+    restart: always
+
+    ports:
+      - "27017:27017"
+
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: mongoContainerVPS
-    ports:
-      - "27017:27017"
+
+    command: >
+      mongod --replSet rs0 --bind_ip_all --keyFile /etc/mongo-keyfile
+
     volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
-    healthcheck:
-      test: [ "CMD-SHELL", "mongosh --quiet --eval 'rs.status().ok' || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - mongo_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+      - ./mongo-keyfile:/etc/mongo-keyfile:ro
 
 volumes:
-  mongodb_data:
-  mongodb_config:
-
-
-networks:
-  default:
-    name: microserviceNetwork
+  mongo_data:
