@@ -14,12 +14,16 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: mongoContainerVPS
 
     command: >
-      mongod --replSet rs0 --bind_ip_all --keyFile /etc/mongo-keyfile
+      bash -c " if [ ! -f /data/configdb/keyfile ]; then
+        openssl rand -base64 756 > /data/configdb/keyfile;
+        chmod 400 /data/configdb/keyfile;
+      fi && mongod --replSet rs0 --bind_ip_all --keyFile /data/configdb/keyfile "
 
     volumes:
       - mongo_data:/data/db
+      - mongo_config:/data/configdb
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
-      - ./mongo-keyfile:/etc/mongo-keyfile:ro
 
 volumes:
   mongo_data:
+  mongo_config:
